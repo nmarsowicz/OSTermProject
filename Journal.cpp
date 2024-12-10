@@ -23,7 +23,6 @@ string getCurrentTime() {
     return string(buf);
 }
 
-// Function to read the file content into a map
 map<int, string> readFileContent(const string &filePath) {
     ifstream file(filePath);
     map<int, string> content;
@@ -36,19 +35,16 @@ map<int, string> readFileContent(const string &filePath) {
     return content;
 }
 
-// Function to log changes to the journal
 void logChanges(const string &journalPath, const map<int, string> &oldContent, const map<int, string> &newContent) {
     ofstream journal(journalPath, ios::app);
     string timestamp = getCurrentTime();
 
-    // Check for added lines
     for (const auto &pair : newContent) {
         if (oldContent.find(pair.first) == oldContent.end()) {
             journal << timestamp << " + l" << pair.first << ":" << pair.second << endl;
         }
     }
 
-    // Check for removed lines
     for (const auto &pair : oldContent) {
         if (newContent.find(pair.first) == newContent.end()) {
             journal << timestamp << " - l" << pair.first << ":" << pair.second << endl;
@@ -78,7 +74,7 @@ int main() {
     char buffer[BUF_LEN];
     cout << "Watching the folder for file changes..." << endl;
 
-    map<string, map<int, string>> fileStates; // Stores the current state of each watched file
+    map<string, map<int, string>> fileStates;
 
     while (true) {
         int length = read(fd, buffer, BUF_LEN);
@@ -96,7 +92,6 @@ int main() {
                 string filePath = string(watchedFolder) + "/" + filename;
                 string journalPath = journalFolder + "/j1_" + filename + ".DAT";
 
-                // Skip non-txt files and .journal files
                 if (filename.find(".txt") == string::npos || filename.find(".journal") != string::npos || filename.find(".swp") != string::npos) {
                     i += EVENT_SIZE + event->len;
                     continue;
@@ -116,10 +111,9 @@ int main() {
                         cout << "New journal created: " << journalPath << endl;
 
                     } else {
-                        // Compare old and new content and log changes
                         logChanges(journalPath, fileStates[filename], newContent);
                     }
-                    fileStates[filename] = newContent; // Update the stored state
+                    fileStates[filename] = newContent;
                 } else if (event->mask & IN_DELETE) {
                     cout << "File " << filename << " was deleted.\n";
                     fileStates.erase(filename); // Remove the file from state tracking
